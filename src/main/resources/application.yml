@@ -1,5 +1,15 @@
 spring.application.name: composer-v1-generator-service
 server.port: 7002
+app:
+  composer-service:
+    host: localhost
+    port: 7000
+  composition-service:
+    host: localhost
+    port: 7001
+  generation-service:
+    host: localhost
+    port: 7002
 logging:
   level:
     root: INFO
