@@ -12,11 +12,11 @@ app:
     port: 7002
 logging:
   level:
-    root: INFO
+    root: info
     web: debug
     sql: debug
-    com.reynolds: DEBUG
-    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+    com.reynolds.composer.v1: debug
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: debug
 ---
 spring.config.activate.on-profile: docker
 server.port: 8080
