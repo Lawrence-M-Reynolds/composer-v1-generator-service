@@ -10,6 +10,10 @@ app:
   generation-service:
     host: localhost
     port: 7002
+#spring.data.mongodb:
+#  host: localhost
+#  port: 27017
+#  database: composition-variation-db
 logging:
   level:
     root: info
