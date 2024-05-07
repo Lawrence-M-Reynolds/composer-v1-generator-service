@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -12,7 +15,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.lang.invoke.MethodHandles;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+        DataSourceAutoConfiguration.class,
+        DataSourceTransactionManagerAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class
+})
 @ComponentScan("com.reynolds.composer.v1")
 @EntityScan("com.reynolds.composer.v1")
 public class ComposerV1GeneratorServiceApplication {
@@ -31,18 +38,4 @@ public class ComposerV1GeneratorServiceApplication {
     RestTemplate restTemplate() {
         return new RestTemplate();
     }
-
-    // TODO: Remove if unnecessary.
-//    @Autowired
-//    MongoOperations mongoTemplate;
-//
-//    @EventListener(ContextRefreshedEvent.class)
-//    public void initIndicesAfterStartup() {
-//
-//        MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext = mongoTemplate.getConverter().getMappingContext();
-//        IndexResolver resolver = new MongoPersistentEntityIndexResolver(mappingContext);
-//
-//        IndexOperations indexOps = mongoTemplate.indexOps(CompositionVariation.class);
-//        resolver.resolveIndexFor(CompositionVariation.class).forEach(e -> indexOps.ensureIndex(e));
-//    }
 }
