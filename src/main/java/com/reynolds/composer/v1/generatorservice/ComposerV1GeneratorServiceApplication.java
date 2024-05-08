@@ -31,7 +31,7 @@ public class ComposerV1GeneratorServiceApplication {
 
         String mongodDbHost = ctx.getEnvironment().getProperty("spring.data.mongodb.host");
         String mongodDbPort = ctx.getEnvironment().getProperty("spring.data.mongodb.port");
-        logger.info("Connected to MongoDb: " + mongodDbHost + ":" + mongodDbPort);
+        logger.info("MongoDb connection details: " + mongodDbHost + ":" + mongodDbPort);
     }
 
     @Bean

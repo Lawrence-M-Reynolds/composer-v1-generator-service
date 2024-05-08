@@ -1,0 +1,54 @@
+version: '2.26.1'
+
+services:
+  composer_generator:
+    build: .
+    mem_limit: 512m
+    networks:
+      - generator_network
+    ports:
+      - "8080:8080"
+    hostname: generator-microservice
+    depends_on:
+      generator_database:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=generator-database
+
+#  --name composer_generator
+#  -e SPRING_PROFILES_ACTIVE=docker
+#  -e DB_HOST=generator_database
+#  -p 8080:8080
+#  --network=generator_network
+#  lreynolds/composer-v1-generator:latest
+
+  generator_database:
+    image: mongo:7.0.9
+    container_name: generator_database
+    networks:
+      - generator_network
+    hostname: generator-database
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    healthcheck:
+      test: mongosh --host localhost -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase admin --eval "printjson(db.serverStatus().ok)"
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    volumes:
+      - .\DbData:/data/db
+
+networks:
+  generator_network: {}
+
+#  --name generator_database
+#  --hostname generator_database
+#  -v .\DbData:/data/db
+#  -e MONGO_INITDB_ROOT_USERNAME=mongoadmin
+#  -e MONGO_INITDB_ROOT_PASSWORD=secret
+#  --network=generator_network
+#  mongo:7.0.9
+

@@ -23,7 +23,7 @@ public class GeneratorServiceLocalRunner {
         @Bean
         @ServiceConnection
         public MongoDBContainer mongoDBContainer() {
-            return new MongoDBContainer("mongo:4.0.10");
+            return new MongoDBContainer("mongo:7.0.9");
         }
     }
 }
