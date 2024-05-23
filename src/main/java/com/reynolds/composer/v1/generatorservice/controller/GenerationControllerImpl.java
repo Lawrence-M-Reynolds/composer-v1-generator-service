@@ -7,8 +7,11 @@ import com.reynolds.composer.v1.generatorservice.services.CompositionServiceInte
 import com.reynolds.composer.v1.generatorservice.services.api.GeneratorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,33 +31,42 @@ public class GenerationControllerImpl implements GeneratorController {
         this.generatorService = generatorService;
     }
 
+    /**
+     * Returns a list of the ID's of generated variations. If an error occurs during the processing of the stream then
+     * the exception is logged and a "ERROR" value is returned in the response flux stream. If the original composition
+     * isn't found then a 404 http status is returned.
+     * @param compositionId
+     * @return
+     * @throws IOException
+     */
     @Override
-    public ResponseEntity<Void> processComposition(long compositionId) throws IOException {
-        logger.debug("Processing composition: {}", compositionId);
-        Optional<Composition> compositionOptional = Optional.ofNullable(compositionServiceIntegration.getComposition(compositionId).getBody());
+    public Mono<List<String>> processComposition(long compositionId) throws IOException {
+        return Mono.defer(() -> {
+            logger.debug("Processing composition: {}", compositionId);
+            Composition composition = Optional.ofNullable(compositionServiceIntegration.getComposition(compositionId).getBody())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        if (compositionOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+            logger.debug("Composition: {}", composition);
 
-        Composition composition = compositionOptional.get();
-        logger.debug("Composition: {}", composition);
-
-        List<CompositionVariation> variations = generatorService.createVariations(composition);
-
-        logger.debug("CompositionVariations: {}", variations);
-
-        return ResponseEntity.noContent().build();
+            return generatorService.createVariations(composition)
+                    .map(compositionVariation -> Optional.ofNullable(compositionVariation.getCompositionVariationId()).orElse("null"))
+                    .collectList()
+                    .onErrorMap(e -> {
+                        logger.error("Exception during processing of composition into variations: {}", e.getMessage(), e);
+                        return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+                    });
+        });
     }
 
     @Override
-    public int getGeneratedCountForComposition(long compositionId) throws IOException {
+    public Mono<Integer> getGeneratedCountForComposition(long compositionId) throws IOException {
         logger.debug("Get generation count for composition: {}", compositionId);
         return generatorService.getCountOfGeneratedForComposition(compositionId);
     }
 
     @Override
-    public List<CompositionVariation> getGeneratedVariationsForComposition(long compositionId) throws IOException {
+    public Flux<CompositionVariation> getGeneratedVariationsForComposition(long compositionId) throws IOException {
         return generatorService.getVariationsForComposition(compositionId);
     }
+
 }

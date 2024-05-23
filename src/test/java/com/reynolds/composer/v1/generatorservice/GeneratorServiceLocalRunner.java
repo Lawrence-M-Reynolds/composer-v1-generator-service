@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
+
 @SpringBootTest
 @Testcontainers
 public class GeneratorServiceLocalRunner {
@@ -23,7 +25,9 @@ public class GeneratorServiceLocalRunner {
         @Bean
         @ServiceConnection
         public MongoDBContainer mongoDBContainer() {
-            return new MongoDBContainer("mongo:7.0.9");
+            var mongoDBContainer = new MongoDBContainer("mongo:7.0.9");
+            mongoDBContainer.setPortBindings(List.of("27017:27017"));
+            return mongoDBContainer;
         }
     }
 }

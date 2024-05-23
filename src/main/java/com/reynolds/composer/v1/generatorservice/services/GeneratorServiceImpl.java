@@ -8,9 +8,12 @@ import com.reynolds.composer.v1.generatorservice.services.api.GeneratorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class GeneratorServiceImpl implements GeneratorService {
@@ -23,7 +26,7 @@ public class GeneratorServiceImpl implements GeneratorService {
     }
 
     @Override
-    public List<CompositionVariation> createVariations(Composition composition) throws JsonProcessingException {
+    public Flux<CompositionVariation> createVariations(Composition composition) {
         List<CompositionVariation> compositionVariations = new ArrayList<>();
 
         compositionVariations.add(createVariation(composition, 1));
@@ -31,26 +34,27 @@ public class GeneratorServiceImpl implements GeneratorService {
         compositionVariations.add(createVariation(composition, 3));
 
         logger.debug("Persisting variations: {}", compositionVariations);
-        compositionVariationRepository.saveAll(compositionVariations);
-
-        return compositionVariations;
+        return compositionVariationRepository.saveAll(compositionVariations).log();
     }
 
-    private CompositionVariation createVariation(Composition composition, int count) throws JsonProcessingException {
+    private CompositionVariation createVariation(Composition composition, int count) {
         CompositionVariation compositionVariation = new CompositionVariation();
-        compositionVariation.setCompositionName(composition.getName() + " | " + "compositionVariation_" + count);
+
+        String originalCompositionName = Optional.ofNullable(composition.getName()).orElse("NO NAME");
+
+        compositionVariation.setCompositionName(originalCompositionName + " | " + "compositionVariation_" + count);
         compositionVariation.setOriginalCompositionId(composition.getId());
 
         return compositionVariation;
     }
 
     @Override
-    public int getCountOfGeneratedForComposition(long compositionId) {
+    public Mono<Integer> getCountOfGeneratedForComposition(long compositionId) {
         return compositionVariationRepository.countCompositionVariationByOriginalCompositionId(compositionId);
     }
 
     @Override
-    public List<CompositionVariation> getVariationsForComposition(long compositionId) throws JsonProcessingException {
+    public Flux<CompositionVariation> getVariationsForComposition(long compositionId) throws JsonProcessingException {
         return compositionVariationRepository.findByOriginalCompositionId(compositionId);
     }
 
