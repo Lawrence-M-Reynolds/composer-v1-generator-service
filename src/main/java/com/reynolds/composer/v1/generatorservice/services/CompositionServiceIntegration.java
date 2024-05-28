@@ -31,7 +31,7 @@ public class CompositionServiceIntegration implements CompositionController {
 
     @Override
     public Mono<Composition> getComposition(long compositionId) {
-        return webClient.post().uri(uriBuilder -> uriBuilder
+        return webClient.get().uri(uriBuilder -> uriBuilder
                         .pathSegment(Long.toString(compositionId))
                         .build())
                 .retrieve()
