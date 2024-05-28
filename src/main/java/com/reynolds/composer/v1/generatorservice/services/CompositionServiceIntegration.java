@@ -8,29 +8,34 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.lang.invoke.MethodHandles;
 
 import static org.springframework.http.HttpMethod.GET;
 
 @Component
 public class CompositionServiceIntegration implements CompositionController {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private final WebClient webClient;
 
-    private final String compostionServiceUrl;
-    private RestTemplate restTemplate;
-
-    public CompositionServiceIntegration(RestTemplate restTemplate,
+    public CompositionServiceIntegration(WebClient.Builder webClient,
                                          @Value("${app.composition-service.host}") String serviceHost,
                                          @Value("${app.composition-service.port}") int servicePort) {
 
-        this.restTemplate = restTemplate;
-        compostionServiceUrl = "http://" + serviceHost + ":" + servicePort + "/compositions";
+        String serviceUrl = "http://" + serviceHost + ":" + servicePort + "/compositions";
+        this.webClient = webClient.baseUrl(serviceUrl).build();
     }
 
     @Override
-    public ResponseEntity<Composition> getComposition(long compositionId) {
-        String url = compostionServiceUrl + "/" + compositionId;
-        return restTemplate.exchange(url, GET, null, Composition.class);
+    public Mono<Composition> getComposition(long compositionId) {
+        return webClient.get().uri(uriBuilder -> uriBuilder
+                        .pathSegment(Long.toString(compositionId))
+                        .build())
+                .retrieve()
+                .bodyToMono(Composition.class);
     }
 
 }

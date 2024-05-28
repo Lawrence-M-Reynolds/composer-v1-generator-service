@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -59,7 +60,7 @@ class ComposerV1GeneratorServiceApplicationTests {
         Composition composition = new Composition();
         composition.setId(originalCompositionId);
 
-        Mockito.when(compositionServiceIntegration.getComposition(originalCompositionId)).thenReturn(ResponseEntity.ok(composition));
+        Mockito.when(compositionServiceIntegration.getComposition(originalCompositionId)).thenReturn(Mono.just(composition));
 
         List<String> vartionIds = postForProcessing(originalCompositionId, HttpStatus.OK);
         System.out.println("vartionIds: " + vartionIds);
@@ -112,21 +113,4 @@ class ComposerV1GeneratorServiceApplicationTests {
                 .returnResult()
                 .getResponseBody();
     }
-
-//    @Test
-//    void test() {
-//        Flux<String> result = client.get()
-//                .uri(uriBuilder -> uriBuilder
-//                        .path("/generator/testMethod/2")
-//                        .queryParam("statusCode", Long.toString(200))
-//                        .build())
-//                .exchange()
-//                .expectStatus().isEqualTo(200)
-//                .returnResult(String.class)
-//                .getResponseBody();
-//
-//        System.out.println("Result: " + result.collectList().block());
-//    }
-
 }
-

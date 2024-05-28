@@ -1,5 +1,6 @@
 package com.reynolds.composer.v1.generatorservice;
 
+import com.reynolds.composer.v1.AbstractComposerLocalDevTestcontainersConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -21,12 +22,13 @@ public class GeneratorServiceLocalRunner {
     }
 
     @TestConfiguration(proxyBeanMethods = false)
-    static private class LocalDevTestcontainersConfig {
+    static private class LocalDevTestcontainersConfig extends AbstractComposerLocalDevTestcontainersConfig {
         @Bean
         @ServiceConnection
         public MongoDBContainer mongoDBContainer() {
             var mongoDBContainer = new MongoDBContainer("mongo:7.0.9");
             mongoDBContainer.setPortBindings(List.of("27017:27017"));
+            this.configureContainer(mongoDBContainer);
             return mongoDBContainer;
         }
     }

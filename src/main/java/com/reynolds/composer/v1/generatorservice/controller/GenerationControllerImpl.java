@@ -14,13 +14,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 public class GenerationControllerImpl implements GeneratorController {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final CompositionServiceIntegration compositionServiceIntegration;
     private final GeneratorService generatorService;
@@ -41,21 +42,15 @@ public class GenerationControllerImpl implements GeneratorController {
      */
     @Override
     public Mono<List<String>> processComposition(long compositionId) throws IOException {
-        return Mono.defer(() -> {
-            logger.debug("Processing composition: {}", compositionId);
-            Composition composition = Optional.ofNullable(compositionServiceIntegration.getComposition(compositionId).getBody())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-            logger.debug("Composition: {}", composition);
-
-            return generatorService.createVariations(composition)
-                    .map(compositionVariation -> Optional.ofNullable(compositionVariation.getCompositionVariationId()).orElse("null"))
-                    .collectList()
-                    .onErrorMap(e -> {
-                        logger.error("Exception during processing of composition into variations: {}", e.getMessage(), e);
-                        return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
-                    });
-        });
+        return compositionServiceIntegration.getComposition(compositionId)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No composition with the ID exists: " + compositionId)))
+                .flatMapMany(generatorService::createVariations)
+                .map(compositionVariation -> String.valueOf(compositionVariation.getCompositionVariationId()))
+                .collectList()
+                .onErrorMap(e -> {
+                    logger.error("Exception during processing of composition into variations: {}", e.getMessage(), e);
+                    return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+                });
     }
 
     @Override

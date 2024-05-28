@@ -55,6 +55,13 @@
 
         <!-- Test -->
         <dependency>
+            <groupId>com.reynolds.composer.v1</groupId>
+            <artifactId>composer-util</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
